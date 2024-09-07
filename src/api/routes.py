@@ -5,6 +5,7 @@ from flask import Flask, request, jsonify, url_for, Blueprint
 from api.models import db, User
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
+from app import bcrypt
 from flask_jwt_extended import create_access_token
 
 api = Blueprint('api', __name__)
@@ -25,10 +26,10 @@ def handle_signup():
         error = "Need to provide email and password"
 
     try:
-        # password_hash = bcrypt.generate_password_hash(password)
+        password_hash = bcrypt.generate_password_hash(password)
         new_user = User(
             email=email,
-            password=password,
+            password=password_hash,
             is_active=True
         ) 
         db.session.add(new_user)
@@ -36,7 +37,7 @@ def handle_signup():
 
         jwt_token = create_access_token(identity=new_user.id)
         data = jwt_token
-    except:
+    except Exception as e:
         error = "Internal server error"
 
     response_body = {
